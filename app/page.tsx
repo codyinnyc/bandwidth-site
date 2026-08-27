@@ -95,7 +95,8 @@ export default function Home() {
     xhr.onload = () => {
       runtime.current.xhrs.delete(xhr);
       runtime.current.edge = xhr.getResponseHeader('cf-meta-colo') || xhr.getResponseHeader('cf-ray')?.split('-')[1] || runtime.current.edge;
-      xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`Upload endpoint returned ${xhr.status}.`));
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error(`Upload endpoint returned ${xhr.status}.`));
     };
     xhr.onerror = () => { runtime.current.xhrs.delete(xhr); reject(new Error('Upload connection failed.')); };
     xhr.onabort = () => { runtime.current.xhrs.delete(xhr); resolve(); };
@@ -109,11 +110,15 @@ export default function Home() {
     while (runtime.current.running) {
       const bytes = reserve(); if (!bytes) break;
       const id = Symbol(); runtime.current.active.set(id, { direction: turn, bytes: 0 });
-      try { turn === 'download' ? await download(bytes, id) : await upload(bytes, id); }
+      try {
+        if (turn === 'download') await download(bytes, id);
+        else await upload(bytes, id);
+      }
       catch (error) { if (runtime.current.running) throw error; }
       const transfer = runtime.current.active.get(id);
       if (transfer) {
-        transfer.direction === 'download' ? runtime.current.completedDown += transfer.bytes : runtime.current.completedUp += transfer.bytes;
+        if (transfer.direction === 'download') runtime.current.completedDown += transfer.bytes;
+        else runtime.current.completedUp += transfer.bytes;
         runtime.current.active.delete(id); runtime.current.requests += 1;
       }
       if (selected === 'both') turn = turn === 'download' ? 'upload' : 'download';
@@ -153,7 +158,7 @@ export default function Home() {
   return <>
     <header className="shell masthead"><a className="brand" href="#top"><span className="brand-mark" aria-hidden="true"><i/><i/><i/></span>Bandwidth Lab</a><span className="mode"><span className="mode-dot"/>Cloudflare edge</span></header>
     <main id="top" className="shell">
-      <section className="hero"><p className="eyebrow">// CONTROLLED NETWORK LOAD</p><h1>Use the bandwidth.<br/><em>See every byte.</em></h1><p className="lede">A configurable transfer utility for testing your own connection. Choose a direction, set the workload, and watch throughput at the browser in real time.</p></section>
+      <section className="hero"><p className="eyebrow">{'// CONTROLLED NETWORK LOAD'}</p><h1>Use the bandwidth.<br/><em>See every byte.</em></h1><p className="lede">A configurable transfer utility for testing your own connection. Choose a direction, set the workload, and watch throughput at the browser in real time.</p></section>
       <section className="console">
         <div className="controls">
           <div className="control-group"><span className="control-label">Transfer direction</span><div className="segmented" role="radiogroup" aria-label="Transfer direction">
@@ -176,6 +181,6 @@ export default function Home() {
         </div>
       </section>
     </main>
-    <footer className="shell"><span>Bandwidth Lab / browser-side transfers</span><span>No test payloads are stored by this site.</span></footer>
+    <footer className="shell"><span>Bandwidth Lab / browser-side transfers</span><span>No test payloads are stored by this site.</span><span>Inspired by <a href="https://github.com/hletrd/data-waster/tree/master" rel="noopener noreferrer">HLETRD&apos;s original Data Waster</a>.</span></footer>
   </>;
 }
