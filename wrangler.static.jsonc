@@ -1,0 +1,27 @@
+{
+  // Deploy config for the public static site on Cloudflare Workers.
+  //
+  // Deliberately NOT named `wrangler.jsonc`: `vite.config.ts` supplies its own
+  // inline Worker config for local dev, and a default-named file at the repo
+  // root would be picked up by that tooling too. Pass it explicitly instead:
+  //   npm run deploy
+  //
+  // `custom_domain: true` makes Wrangler create the hostname's DNS record and
+  // TLS certificate on first deploy, so no manual DNS entry is needed.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bandwidth-lab",
+  "compatibility_date": "2026-05-15",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    {
+      "pattern": "bandwidth.cooop.io",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

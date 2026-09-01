@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
+// Set per deploy target; defaults to the canonical Cloudflare-hosted origin.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bandwidth.cooop.io';
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://codyinnyc.github.io/bandwidth-site/'),
+  metadataBase: new URL(siteUrl),
   title: 'Bandwidth Lab',
   description: 'A configurable bandwidth transfer utility using Cloudflare speed-test endpoints.',
   openGraph: {

@@ -10,7 +10,9 @@
     "build": "vinext build",
     "build:pages": "next build",
     "start": "vinext start",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "build:static": "STATIC_EXPORT=true next build",
+    "deploy": "npm run build:static && wrangler deploy -c wrangler.static.jsonc"
   },
   "dependencies": {
     "next": "^16.3.3",
