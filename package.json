@@ -8,11 +8,11 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "build:pages": "next build",
+    "build:pages": "STATIC_EXPORT=true SITE_BASE_PATH=/bandwidth-site NEXT_PUBLIC_SITE_URL=https://codyinnyc.github.io/bandwidth-site/ next build",
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "build:static": "STATIC_EXPORT=true next build",
-    "deploy": "npm run build:static && wrangler deploy -c wrangler.static.jsonc"
+    "deploy": "npm run build:speed && wrangler deploy -c wrangler.static.jsonc",
+    "build:speed": "STATIC_EXPORT=true SITE_BASE_PATH=/speed NEXT_PUBLIC_SITE_URL=https://cooop.io/speed/ next build && rm -rf dist && mkdir -p dist && mv out dist/speed"
   },
   "dependencies": {
     "next": "^16.3.3",

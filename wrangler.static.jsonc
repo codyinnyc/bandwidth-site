@@ -1,25 +1,30 @@
 {
-  // Deploy config for the public static site on Cloudflare Workers.
+  // Deploy config for the public site at https://cooop.io/speed.
   //
   // Deliberately NOT named `wrangler.jsonc`: `vite.config.ts` supplies its own
   // inline Worker config for local dev, and a default-named file at the repo
   // root would be picked up by that tooling too. Pass it explicitly instead:
   //   npm run deploy
   //
-  // `custom_domain: true` makes Wrangler create the hostname's DNS record and
-  // TLS certificate on first deploy, so no manual DNS entry is needed.
+  // Routing: the `cooop-io-site` Worker already answers every path on
+  // cooop.io. A route is matched ahead of that Worker's Custom Domain, so
+  // these two patterns peel off /speed without touching the rest of the site.
+  // They are listed separately rather than as `cooop.io/speed*` so that a path
+  // like /speedtest still falls through to the existing Worker.
+  //
+  // `dist/` nests the export under a `speed/` directory (see `build:speed`)
+  // because the asset router resolves request paths against the directory
+  // as-is: /speed/_next/... has to exist on disk at that same path.
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "bandwidth-lab",
   "compatibility_date": "2026-05-15",
   "assets": {
-    "directory": "./out",
+    "directory": "./dist",
     "not_found_handling": "404-page"
   },
   "routes": [
-    {
-      "pattern": "bandwidth.cooop.io",
-      "custom_domain": true
-    }
+    { "pattern": "cooop.io/speed", "zone_name": "cooop.io" },
+    { "pattern": "cooop.io/speed/*", "zone_name": "cooop.io" }
   ],
   "observability": {
     "enabled": true

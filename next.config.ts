@@ -1,16 +1,15 @@
 import type { NextConfig } from 'next';
 
-// Two static-export targets share this config:
-//   * Cloudflare Workers (the canonical site) serves the export at the origin
-//     root, so it needs no basePath.
-//   * The GitHub Pages project site stays reachable at /bandwidth-site/, which
-//     does need one.
-const isGitHubPages = process.env.GITHUB_PAGES === 'true';
-const isStaticExport = isGitHubPages || process.env.STATIC_EXPORT === 'true';
+// Both deploy targets are static exports served from a sub-path, so the base
+// path is the only thing that varies between them:
+//   * cooop.io/speed        (Cloudflare Worker, canonical)
+//   * /bandwidth-site/      (GitHub Pages mirror)
+const isStaticExport = process.env.STATIC_EXPORT === 'true';
+const basePath = process.env.SITE_BASE_PATH ?? '';
 
 const nextConfig: NextConfig = {
   ...(isStaticExport ? { output: 'export' as const, trailingSlash: true } : {}),
-  ...(isGitHubPages ? { basePath: '/bandwidth-site' } : {}),
+  ...(basePath ? { basePath } : {}),
 };
 
 export default nextConfig;
