@@ -179,10 +179,11 @@ test('wake lock releases on stop and ambient controls remain usable', async () =
   await page.getByRole('dialog', { name: 'Ambient transfer display' }).waitFor();
   assert.equal(await page.evaluate(() => document.querySelector('dialog').matches(':modal')), true);
   assert.equal(await page.getByRole('dialog').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(0, 0, 0)');
-  await page.getByRole('button', { name: 'Show controls', exact: true }).click();
+  // Moving ambient controls are operated by keyboard here; pointer automation waits for a stationary target.
+  await page.getByRole('button', { name: 'Show controls', exact: true }).press('Enter');
   assert.equal(await page.getByRole('dialog').count(), 0);
   await page.getByRole('button', { name: 'Enter ambient display' }).click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Stop transfer', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Stop transfer', exact: true }).press('Enter');
   await page.waitForFunction(() => window.__wake.releases === 1);
   assert.equal(await page.getByRole('dialog').count(), 0);
   assert.equal(await page.locator('.status-chip').innerText(), 'Stopped');
