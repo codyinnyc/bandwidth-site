@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
-export const viewport: Viewport = { themeColor: '#080809', colorScheme: 'dark' };
+export const viewport: Viewport = { themeColor: '#000000', colorScheme: 'dark' };
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://codyinnyc.github.io/bandwidth-site/'),
