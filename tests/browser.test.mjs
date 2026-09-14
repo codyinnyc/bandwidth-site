@@ -113,6 +113,9 @@ test('mobile layout stays within viewport and reduced motion stops the border', 
   }
   assert.equal(await page.evaluate(() => getComputedStyle(document.body, '::before').animationName), 'none');
   assert.match(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily), /-apple-system/);
+  for (const selector of ['body', '.console', '.telemetry', '.controls']) {
+    assert.equal(await page.locator(selector).evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(0, 0, 0)');
+  }
   assert.deepEqual(errors, []);
   await page.close();
 });
@@ -175,6 +178,7 @@ test('wake lock releases on stop and ambient controls remain usable', async () =
   await page.getByRole('button', { name: 'Enter ambient display' }).click();
   await page.getByRole('dialog', { name: 'Ambient transfer display' }).waitFor();
   assert.equal(await page.evaluate(() => document.querySelector('dialog').matches(':modal')), true);
+  assert.equal(await page.getByRole('dialog').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(0, 0, 0)');
   await page.getByRole('button', { name: 'Show controls', exact: true }).click();
   assert.equal(await page.getByRole('dialog').count(), 0);
   await page.getByRole('button', { name: 'Enter ambient display' }).click();
