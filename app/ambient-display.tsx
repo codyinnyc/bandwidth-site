@@ -39,9 +39,8 @@ export default function AmbientDisplay({ rate, unit, transferred, onStop }: {
 
   return <>
     <button type="button" className="ambient-entry" onClick={() => setVisible(true)}>Enter ambient display <span aria-hidden="true">↗</span></button>
-    <p className="ambient-help">Auto after 20 seconds idle. Dim colors and shifting readouts.</p>
+    <p className="ambient-help">Auto after 20 seconds idle. Pure black with dim, shifting readouts.</p>
     {visible && <dialog ref={dialog} className="ambient-screen" aria-label="Ambient transfer display" onCancel={() => setVisible(false)} onClick={() => setVisible(false)}>
-      <div className="ambient-wash" aria-hidden="true"/>
       <div className="ambient-readout">
         <p className="ambient-label">Bandwidth Lab</p>
         <div className="ambient-rate">{rate}<span>{unit}</span></div>
