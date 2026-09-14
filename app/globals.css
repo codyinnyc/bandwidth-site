@@ -9,13 +9,13 @@
   --blue: #82b8ff;
   font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
   font-synthesis: none;
-  background: #080809;
+  background: #000;
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(ellipse at 50% 0, #20212955, transparent 620px), #080809; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: #000; }
 body::before { content: ''; position: fixed; inset: 0; z-index: 100; pointer-events: none; border: 2px solid transparent; border-image: linear-gradient(120deg, #ff537d, #ffbf59, #6ae7a1, #6bcfff, #9985ff, #ef7ed5, #ff537d) 1; animation: border-hue 18s linear infinite; }
 @keyframes border-hue { to { filter: hue-rotate(360deg); } }
 a { color: inherit; }
@@ -46,8 +46,8 @@ h1 > span { background: linear-gradient(110deg, #a7b7df 5%, #d9c7ec 45%, #f2d3c7
 .lede { margin: 22px 0 0; color: var(--muted); font-size: 16px; line-height: 1.6; letter-spacing: -.018em; }
 .hero-meta { display: inline-flex; align-items: center; gap: 7px; margin-top: 20px; font-size: 11px; color: var(--subtle); }
 .quiet-dot { height: 5px; width: 5px; border-radius: 50%; background: #99a79f; }
-.console { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); border: 1px solid #ffffff1c; border-radius: 24px; background: #141416; overflow: hidden; box-shadow: 0 24px 80px #00000050, 0 1px 0 #ffffff05 inset; }
-.telemetry { min-width: 0; padding: 30px 32px 24px; background: radial-gradient(ellipse at 30% 0, #2c354212, transparent 70%), #141416; }
+.console { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); border: 1px solid #ffffff1c; border-radius: 24px; background: #000; overflow: hidden; box-shadow: 0 24px 80px #00000050, 0 1px 0 #ffffff05 inset; }
+.telemetry { min-width: 0; padding: 30px 32px 24px; background: #000; }
 .panel-heading { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
 .section-label { font-size: 13px; font-weight: 550; letter-spacing: -.01em; color: #dadade; }
 .status-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid #ffffff10; background: #ffffff04; border-radius: 20px; font-size: 10px; color: #b1b1bb; white-space: nowrap; }
@@ -58,7 +58,7 @@ h1 > span { background: linear-gradient(110deg, #a7b7df 5%, #d9c7ec 45%, #f2d3c7
 .status-chip.error { color: #ffb1a9; border-color: #ffb1a930; }
 .status-chip.error > span { background: #ffb1a9; }
 .reading-topline { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 34px; color: var(--muted); font-size: 12px; }
-.unit-toggle { display: inline-flex; padding: 3px; gap: 2px; background: #09090b; border-radius: 7px; border: 1px solid #ffffff09; }
+.unit-toggle { display: inline-flex; padding: 3px; gap: 2px; background: #000; border-radius: 7px; border: 1px solid #ffffff09; }
 .unit-toggle button { border: 0; border-radius: 4px; padding: 6px 8px; background: transparent; color: #93939e; font-size: 10px; }
 .unit-toggle button[aria-pressed=true] { color: #e7e7ed; background: #303034; box-shadow: 0 1px 3px #0008; }
 .primary-reading { display: flex; align-items: baseline; gap: 12px; margin-top: 9px; }
@@ -87,12 +87,12 @@ h1 > span { background: linear-gradient(110deg, #a7b7df 5%, #d9c7ec 45%, #f2d3c7
 .run-details dt { font-size: 10px; color: var(--subtle); }
 .run-details dd { margin: 5px 0 0; font-size: 12px; color: #c9c9d1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .run-details dd span { font-size: 10px; color: var(--muted); }
-.controls { padding: 28px; background: #1b1b1e; border-left: 1px solid #ffffff0a; scroll-margin-top: 20px; }
+.controls { padding: 28px; background: #000; border-left: 1px solid #ffffff0a; scroll-margin-top: 20px; }
 .controls-title h2 { margin: 0; font-size: 18px; letter-spacing: -.035em; font-weight: 600; }
 .controls-title p { margin: 6px 0 24px; font-size: 11px; color: var(--muted); line-height: 1.5; }
 fieldset { margin: 0 0 20px; padding: 0; min-width: 0; border: 0; }
 legend { display: block; width: 100%; padding: 0; margin-bottom: 9px; font-size: 12px; font-weight: 550; color: #dcdce1; }
-.segmented { display: grid; grid-template-columns: 1fr 1fr .8fr; gap: 3px; background: #111113; padding: 4px; border: 1px solid #ffffff08; border-radius: 10px; }
+.segmented { display: grid; grid-template-columns: 1fr 1fr .8fr; gap: 3px; background: #000; padding: 4px; border: 1px solid #ffffff08; border-radius: 10px; }
 .segmented button { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px 4px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 11px; }
 .segmented button svg { width: 13px; height: 13px; }
 .segmented button[aria-pressed=true] { background: #3a3a3e; color: #fff; box-shadow: 0 1px 4px #0005, 0 1px 0 #ffffff10 inset; }
@@ -101,7 +101,7 @@ legend { display: block; width: 100%; padding: 0; margin-bottom: 9px; font-size:
 .presets button { border: 1px solid #ffffff16; border-radius: 7px; background: #ffffff03; padding: 8px 4px; color: var(--muted); font-size: 11px; }
 .presets button[aria-pressed=true] { border-color: #81afff75; color: #bdd6ff; background: #6899ff13; }
 .presets button:hover:not(:disabled):not([aria-pressed=true]) { background: #ffffff0c; }
-.number-control { position: relative; display: flex; align-items: center; margin-top: 8px; border: 1px solid #ffffff18; border-radius: 8px; background: #111113; }
+.number-control { position: relative; display: flex; align-items: center; margin-top: 8px; border: 1px solid #ffffff18; border-radius: 8px; background: #000; }
 .number-control:focus-within { border-color: var(--blue); }
 .number-control input { width: 100%; min-width: 0; padding: 10px 12px; background: transparent; border: 0; border-radius: 8px; font-size: 14px; font-variant-numeric: tabular-nums; }
 .number-control > span:not(.sr-only):not(.continuous-label) { padding-right: 12px; color: var(--subtle); font-size: 11px; }
@@ -163,10 +163,9 @@ footer svg { height: 12px; width: 12px; }
 .ambient-help { margin: 6px 0 16px; color: var(--subtle); font-size: 10px; line-height: 1.5; }
 body:has(.ambient-screen[open]) { overflow: hidden; }
 body:has(.ambient-screen[open])::before { visibility: hidden; }
-.ambient-screen { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #080b11; color: #a3a9ba; overflow: hidden; cursor: pointer; }
-.ambient-screen::backdrop { background: #080b11; }
-.ambient-wash { position: absolute; inset: -30%; background: radial-gradient(ellipse at 25% 30%, #19263f 0%, transparent 65%), radial-gradient(ellipse at 75% 70%, #23172f 0%, transparent 60%), #080c13; animation: ambient-color 100s linear infinite, ambient-wash 73s ease-in-out infinite alternate; pointer-events: none; }
-.ambient-readout { --travel-x: clamp(8px, calc((100vw - 340px) / 2), 140px); --travel-y: clamp(24px, 15vh, 130px); position: absolute; width: min(320px, calc(100vw - 64px)); top: 50%; left: 50%; text-align: center; transform: translate(-50%, -50%); animation: ambient-drift 83s ease-in-out infinite; font-weight: 300; }
+.ambient-screen { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #000; color: #a3a9ba; overflow: hidden; cursor: pointer; }
+.ambient-screen::backdrop { background: #000; }
+.ambient-readout { --travel-x: clamp(8px, calc((100vw - 340px) / 2), 140px); --travel-y: clamp(24px, 15vh, 130px); position: absolute; width: min(320px, calc(100vw - 64px)); top: 50%; left: 50%; text-align: center; transform: translate(-50%, -50%); animation: ambient-drift 83s ease-in-out infinite, ambient-color 100s linear infinite; font-weight: 300; }
 .ambient-label { margin: 0 0 22px; color: #8c92a4; font-size: 12px; font-weight: 350; letter-spacing: .015em; }
 .ambient-rate { font-size: clamp(48px, 9vw, 74px); font-weight: 250; line-height: 1.1; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
 .ambient-rate > span { display: block; margin-top: 7px; font-size: 15px; font-weight: 300; letter-spacing: 0; color: #8c92a4; }
@@ -176,10 +175,33 @@ body:has(.ambient-screen[open])::before { visibility: hidden; }
 .ambient-actions button { min-height: 42px; border: 1px solid #8a91a322; border-radius: 8px; background: #8a91a305; padding: 9px 12px; font-size: 11px; font-weight: 350; color: #9199af; }
 .ambient-actions button:hover { background: #8a91a315; color: #b1b8ca; }
 @keyframes ambient-color { to { filter: hue-rotate(360deg); } }
-@keyframes ambient-wash { to { transform: translate(8%, -7%) scale(1.15); } }
+
 @keyframes ambient-drift {
   0%, 100% { transform: translate(-50%, -50%) translate(calc(var(--travel-x) * -.65), calc(var(--travel-y) * -.7)); }
   25% { transform: translate(-50%, -50%) translate(var(--travel-x), calc(var(--travel-y) * -.4)); }
   50% { transform: translate(-50%, -50%) translate(calc(var(--travel-x) * .4), var(--travel-y)); }
   75% { transform: translate(-50%, -50%) translate(calc(var(--travel-x) * -.9), calc(var(--travel-y) * .45)); }
 }
+
+/* Wide gamut is distinct from HDR. Keep pure-black surfaces in every mode. */
+@media (color-gamut: p3) {
+  @supports (color: color(display-p3 1 0 0)) {
+    body::before { border-image-source: linear-gradient(120deg, color(display-p3 1 .24 .42), color(display-p3 1 .7 .22), color(display-p3 .25 .88 .52), color(display-p3 .25 .72 1), color(display-p3 .57 .35 1), color(display-p3 .95 .32 .76), color(display-p3 1 .24 .42)); }
+    h1 > span { background-image: linear-gradient(110deg, color(display-p3 .62 .7 .9), color(display-p3 .85 .73 .94), color(display-p3 .96 .8 .73)); }
+  }
+}
+/* CSS Color HDR is a working draft. Both display and parser support are required.
+   Do not infer HDR from P3, OKLCH, or dynamic-range-limit alone. */
+@media (dynamic-range: high) {
+  @supports (color: color(rec2100-linear 1.5 1.2 1.4)) {
+    body::before {
+      dynamic-range-limit: no-limit;
+      /* A small highlight above reference white; not a full-screen brightness lift. */
+      border-image-source: linear-gradient(120deg, color(rec2100-linear 1.5 .18 .4), color(rec2100-linear 1.4 1.15 .3), color(rec2100-linear .2 1.4 .7), color(rec2100-linear .3 1.1 1.5), color(rec2100-linear .9 .35 1.5), color(rec2100-linear 1.5 .35 1.1));
+      /* Avoid routing HDR colors through an SDR hue-rotation filter. */
+      animation: none;
+    }
+    .brand-dot { color: color(rec2100-linear 1.4 1.15 1.5); dynamic-range-limit: no-limit; }
+  }
+}
+.ambient-screen { dynamic-range-limit: standard; }
