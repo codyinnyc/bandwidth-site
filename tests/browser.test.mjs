@@ -1,12 +1,16 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { chromium } from 'playwright';
+import { chromium, webkit } from 'playwright';
 
 // Run against the Pages export: GITHUB_PAGES=true npm run build:pages.
 // Serve out/ at /bandwidth-site/ or pass BASE_URL for a dev server.
 const baseURL = process.env.BASE_URL || 'http://localhost:3000/bandwidth-site/';
 let browser;
-before(async () => { browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--no-sandbox'] }); });
+before(async () => {
+  browser = process.env.BROWSER_ENGINE === 'webkit'
+    ? await webkit.launch({ executablePath: process.env.WEBKIT_PATH || undefined })
+    : await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--no-sandbox'] });
+});
 after(async () => { await browser?.close(); });
 
 async function pageWithTransfers({ fail = false, delay = 150 } = {}) {
@@ -112,7 +116,7 @@ test('mobile layout stays within viewport and reduced motion stops the border', 
     await page.setViewportSize({ width, height: 900 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `No horizontal overflow at ${width}px`);
   }
-  assert.equal(await page.evaluate(() => getComputedStyle(document.body, '::before').animationName), 'none');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.rainbow-frame-page .rainbow-edge')).animationName), 'none');
   assert.match(await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily), /-apple-system/);
   for (const selector of ['body', '.console', '.telemetry', '.controls']) {
     assert.equal(await page.locator(selector).evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(0, 0, 0)');
@@ -263,15 +267,16 @@ test('ambient adapts to rotation, unfolding, and the visual viewport without res
   await page.setViewportSize({ width: 390, height: 740 });
   await enterContinuousAmbient(page, true);
   assert.equal(await page.evaluate(() => document.activeElement.className), 'ambient-readout');
-  const frame = await page.locator('.ambient-viewport').evaluate(el => {
-    const style = getComputedStyle(el, '::before');
-    return { gradient: style.borderImageSource, border: style.borderTopWidth, filter: style.filter, pointer: style.pointerEvents, inset: style.top };
+  assert.equal(await page.locator('.ambient-screen .rainbow-frame').count(), 2);
+  assert.equal(await page.locator('.ambient-readout > .rainbow-frame-readout').count(), 1);
+  const frame = await page.locator('.rainbow-frame-screen .rainbow-edge-top').evaluate(el => {
+    const style = getComputedStyle(el);
+    return { gradient: style.backgroundImage, thickness: style.height, filter: style.filter, pointer: style.pointerEvents };
   });
   assert.match(frame.gradient, /linear-gradient/);
-  assert.equal(frame.border, '2px');
-  assert.equal(frame.filter, 'none', 'Do not route HDR border colors through an SDR filter');
+  assert.equal(frame.thickness, '2px');
+  assert.equal(frame.filter, 'none');
   assert.equal(frame.pointer, 'none');
-  assert.equal(frame.inset, '4px');
   const first = await page.locator('.ambient-readout').boundingBox();
   await page.waitForTimeout(1100);
   const moved = await page.locator('.ambient-readout').boundingBox();
@@ -328,7 +333,7 @@ test('ambient respects reduced motion and pointer actions work on a moving reado
   await page.waitForTimeout(250);
   assert.deepEqual(await page.locator('.ambient-readout').boundingBox(), still);
   assert.equal(await page.locator('.ambient-readout').evaluate(el => getComputedStyle(el).animationName), 'none');
-  assert.equal(await page.locator('.ambient-viewport').evaluate(el => getComputedStyle(el, '::before').animationName), 'none');
+  assert.equal(await page.locator('.ambient-viewport').evaluate(el => getComputedStyle(el.querySelector('.rainbow-edge')).animationName), 'none');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const button = await page.getByRole('button', { name: 'Show controls', exact: true }).boundingBox();
   await page.mouse.move(button.x + button.width / 2, button.y + button.height / 2);
@@ -338,5 +343,58 @@ test('ambient respects reduced motion and pointer actions work on a moving reado
   assert.deepEqual(await page.locator('.ambient-readout').boundingBox(), pressed);
   await page.mouse.up();
   assert.equal(await page.getByRole('dialog').count(), 0);
+  await page.close();
+});
+
+async function assertColoredFramePixels(page, selectors) {
+  const frames = await page.evaluate(selectors => selectors.map(selector => {
+    const rect = document.querySelector(selector).getBoundingClientRect();
+    return { selector, x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+  }), selectors);
+  const png = (await page.screenshot()).toString('base64');
+  const results = await page.evaluate(async ({ png, frames }) => {
+    const image = new Image(); image.src = `data:image/png;base64,${png}`; await image.decode();
+    const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+    const context = canvas.getContext('2d'); context.drawImage(image, 0, 0);
+    const scale = image.width / innerWidth;
+    const colored = (x, y) => {
+      const [r, g, b] = context.getImageData(Math.floor(x * scale), Math.floor(y * scale), 1, 1).data;
+      return Math.max(r, g, b) > 70 && Math.max(r, g, b) - Math.min(r, g, b) > 25;
+    };
+    return frames.map(frame => {
+      const sides = [0, 0, 0, 0];
+      for (let index = 0; index < 20; index++) {
+        const fraction = .1 + index / 20 * .8;
+        sides[0] += Number(colored(frame.x + frame.width * fraction, frame.y + .5));
+        sides[1] += Number(colored(frame.x + frame.width - .5, frame.y + frame.height * fraction));
+        sides[2] += Number(colored(frame.x + frame.width * fraction, frame.y + frame.height - .5));
+        sides[3] += Number(colored(frame.x + .5, frame.y + frame.height * fraction));
+      }
+      return { selector: frame.selector, sides };
+    });
+  }, { png, frames });
+  for (const result of results) for (const [side, colored] of result.sides.entries()) {
+    assert.ok(colored >= 16, `${result.selector}, side ${side}: expected visible RGB pixels, got ${colored}/20`);
+  }
+}
+
+test('all RGB frames visibly paint, including with disabled or black HDR enhancements', async () => {
+  const { page } = await pageWithTransfers({ delay: 500 });
+  await page.setViewportSize({ width: 390, height: 740 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await assertColoredFramePixels(page, ['.rainbow-frame-page']);
+  // Emulate a failed enhancement renderer: the uncovered RGB edge must survive.
+  const failedEnhancement = await page.addStyleTag({ content: '.rainbow-edge::after { background: #000 !important; }' });
+  await assertColoredFramePixels(page, ['.rainbow-frame-page']);
+  await enterContinuousAmbient(page, true);
+  await assertColoredFramePixels(page, ['.rainbow-frame-screen', '.rainbow-frame-readout']);
+  await page.setViewportSize({ width: 844, height: 300 });
+  await page.waitForTimeout(100);
+  await assertColoredFramePixels(page, ['.rainbow-frame-screen', '.rainbow-frame-readout']);
+  await failedEnhancement.evaluate(element => element.remove());
+  await page.addStyleTag({ content: '.rainbow-edge::after { display: none !important; }' });
+  await assertColoredFramePixels(page, ['.rainbow-frame-screen', '.rainbow-frame-readout']);
+  await page.getByRole('button', { name: 'Show controls', exact: true }).press('Enter');
+  await assertColoredFramePixels(page, ['.rainbow-frame-page']);
   await page.close();
 });

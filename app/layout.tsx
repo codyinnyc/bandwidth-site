@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import RainbowFrame from './rainbow-frame';
 
 export const viewport: Viewport = { themeColor: '#000000', colorScheme: 'dark' };
 
@@ -16,5 +17,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}</body></html>;
+  return <html lang="en"><body>{children}<RainbowFrame variant="page"/></body></html>;
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import RainbowFrame from './rainbow-frame';
 
 type AmbientProps = {
   downloadRate: string; uploadRate: string; combinedRate: string;
@@ -116,12 +117,14 @@ export default function AmbientDisplay({ downloadRate, uploadRate, combinedRate,
     <p className="ambient-help">Auto after 20 seconds idle. Pure black with moving, color-shifting readouts.</p>
     {visible && <dialog ref={dialog} className="ambient-screen" aria-label="Ambient transfer display" onCancel={() => setVisible(false)} onClick={() => setVisible(false)}>
       <div ref={viewport} className="ambient-viewport">
+        <RainbowFrame variant="screen"/>
         <div ref={stage} className="ambient-stage">
           <div ref={readout} className="ambient-readout" tabIndex={-1} aria-label="Live transfer measurements"
             onClick={event => event.stopPropagation()}
             onPointerDown={() => { interacting.current = true; }}
             onFocusCapture={event => { keyboardFocus.current = event.target instanceof HTMLButtonElement; }}
             onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) keyboardFocus.current = false; }}>
+            <RainbowFrame variant="readout"/>
             <div className="ambient-heading"><span>Bandwidth Lab</span><span className="ambient-live"><i aria-hidden="true"/>Live</span></div>
             <dl className="ambient-speeds" aria-label="Current throughput">
               {[{ label: 'Download', arrow: '↓', value: downloadRate }, { label: 'Upload', arrow: '↑', value: uploadRate }].map(({ label, arrow, value }) => <div key={label}>
