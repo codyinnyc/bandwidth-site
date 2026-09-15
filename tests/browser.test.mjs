@@ -263,6 +263,15 @@ test('ambient adapts to rotation, unfolding, and the visual viewport without res
   await page.setViewportSize({ width: 390, height: 740 });
   await enterContinuousAmbient(page, true);
   assert.equal(await page.evaluate(() => document.activeElement.className), 'ambient-readout');
+  const frame = await page.locator('.ambient-viewport').evaluate(el => {
+    const style = getComputedStyle(el, '::before');
+    return { gradient: style.borderImageSource, border: style.borderTopWidth, filter: style.filter, pointer: style.pointerEvents, inset: style.top };
+  });
+  assert.match(frame.gradient, /linear-gradient/);
+  assert.equal(frame.border, '2px');
+  assert.equal(frame.filter, 'none', 'Do not route HDR border colors through an SDR filter');
+  assert.equal(frame.pointer, 'none');
+  assert.equal(frame.inset, '4px');
   const first = await page.locator('.ambient-readout').boundingBox();
   await page.waitForTimeout(1100);
   const moved = await page.locator('.ambient-readout').boundingBox();
@@ -319,6 +328,7 @@ test('ambient respects reduced motion and pointer actions work on a moving reado
   await page.waitForTimeout(250);
   assert.deepEqual(await page.locator('.ambient-readout').boundingBox(), still);
   assert.equal(await page.locator('.ambient-readout').evaluate(el => getComputedStyle(el).animationName), 'none');
+  assert.equal(await page.locator('.ambient-viewport').evaluate(el => getComputedStyle(el, '::before').animationName), 'none');
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   const button = await page.getByRole('button', { name: 'Show controls', exact: true }).boundingBox();
   await page.mouse.move(button.x + button.width / 2, button.y + button.height / 2);
