@@ -16,8 +16,9 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: #000; }
-body::before { content: ''; position: fixed; inset: 0; z-index: 100; pointer-events: none; border: 2px solid transparent; border-image: linear-gradient(120deg, #ff537d, #ffbf59, #6ae7a1, #6bcfff, #9985ff, #ef7ed5, #ff537d) 1; animation: border-hue 18s linear infinite; }
-@keyframes border-hue { to { filter: hue-rotate(360deg); } }
+@property --frame-angle { syntax: '<angle>'; inherits: false; initial-value: 120deg; }
+body::before, .ambient-viewport::before { content: ''; position: fixed; inset: 0; z-index: 100; pointer-events: none; border: 2px solid transparent; border-image: linear-gradient(var(--frame-angle), #ff537d, #ffbf59, #6ae7a1, #6bcfff, #9985ff, #ef7ed5, #ff537d) 1; animation: frame-turn 24s linear infinite; }
+@keyframes frame-turn { to { --frame-angle: 480deg; } }
 a { color: inherit; }
 button, input { font: inherit; color: inherit; }
 button, a, input { -webkit-tap-highlight-color: transparent; }
@@ -173,6 +174,8 @@ body:has(.ambient-screen[open])::before { visibility: hidden; }
 .ambient-screen { position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #000; color: #9fadc2; overflow: hidden; overscroll-behavior: contain; }
 .ambient-screen::backdrop { background: #000; }
 .ambient-viewport { position: absolute; inset: 0 auto auto 0; width: 100%; height: 100%; container-type: size; }
+.ambient-viewport::before { position: absolute; inset: 4px; z-index: 1; animation: frame-turn 24s linear infinite, ambient-frame-shift 18s linear infinite; }
+@keyframes ambient-frame-shift { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, 1px); } 75% { transform: translate(-1px, -1px); } }
 .ambient-stage { position: absolute; top: max(24px, env(safe-area-inset-top)); bottom: max(24px, env(safe-area-inset-bottom)); left: max(24px, env(safe-area-inset-left)); right: max(24px, env(safe-area-inset-right)); overflow: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .ambient-stage::-webkit-scrollbar { display: none; }
 .ambient-readout { position: absolute; top: 0; left: 0; width: min(340px, calc(100% - 24px)); padding: 2px; font-weight: 350; color: #9fadc2; animation: ambient-color 36s linear infinite; will-change: transform; cursor: default; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -202,7 +205,7 @@ body:has(.ambient-screen[open])::before { visibility: hidden; }
 @media(hover:hover) { .ambient-actions button:hover { border-color: currentColor; } }
 .ambient-stop { width: 6px; height: 6px; border-radius: 1px; background: currentColor; flex: 0 0 auto; }
 .ambient-hint { margin: 14px 0 0; text-align: center; font-size: 9px; line-height: 1.5; opacity: .75; }
-.ambient-paused .ambient-readout { animation-play-state: paused; }
+.ambient-paused .ambient-readout, .ambient-paused .ambient-viewport::before { animation-play-state: paused; }
 @keyframes ambient-color { 0%, 100% { color: #9fadc2; } 33% { color: #b4a4bd; } 66% { color: #93b5ad; } }
 /* Reflow from measured space, not a device name or orientation assumption. */
 @container (max-height: 440px) and (min-width: 560px) {
@@ -218,7 +221,7 @@ body:has(.ambient-screen[open])::before { visibility: hidden; }
 /* Wide gamut is distinct from HDR. Keep pure-black surfaces in every mode. */
 @media (color-gamut: p3) {
   @supports (color: color(display-p3 1 0 0)) {
-    body::before { border-image-source: linear-gradient(120deg, color(display-p3 1 .24 .42), color(display-p3 1 .7 .22), color(display-p3 .25 .88 .52), color(display-p3 .25 .72 1), color(display-p3 .57 .35 1), color(display-p3 .95 .32 .76), color(display-p3 1 .24 .42)); }
+    body::before, .ambient-viewport::before { border-image-source: linear-gradient(var(--frame-angle), color(display-p3 1 .24 .42), color(display-p3 1 .7 .22), color(display-p3 .25 .88 .52), color(display-p3 .25 .72 1), color(display-p3 .57 .35 1), color(display-p3 .95 .32 .76), color(display-p3 1 .24 .42)); }
     h1 > span { background-image: linear-gradient(110deg, color(display-p3 .62 .7 .9), color(display-p3 .85 .73 .94), color(display-p3 .96 .8 .73)); }
   }
 }
@@ -226,14 +229,14 @@ body:has(.ambient-screen[open])::before { visibility: hidden; }
    Do not infer HDR from P3, OKLCH, or dynamic-range-limit alone. */
 @media (dynamic-range: high) {
   @supports (color: color(rec2100-linear 1.5 1.2 1.4)) {
-    body::before {
+    body::before, .ambient-viewport::before {
       dynamic-range-limit: no-limit;
       /* A small highlight above reference white; not a full-screen brightness lift. */
-      border-image-source: linear-gradient(120deg, color(rec2100-linear 1.5 .18 .4), color(rec2100-linear 1.4 1.15 .3), color(rec2100-linear .2 1.4 .7), color(rec2100-linear .3 1.1 1.5), color(rec2100-linear .9 .35 1.5), color(rec2100-linear 1.5 .35 1.1));
-      /* Avoid routing HDR colors through an SDR hue-rotation filter. */
-      animation: none;
+      border-image-source: linear-gradient(var(--frame-angle), color(rec2100-linear 1.5 .18 .4), color(rec2100-linear 1.4 1.15 .3), color(rec2100-linear .2 1.4 .7), color(rec2100-linear .3 1.1 1.5), color(rec2100-linear .9 .35 1.5), color(rec2100-linear 1.5 .35 1.1));
+      /* Animate the gradient angle directly; no SDR filter or opacity layer. */
     }
     .brand-dot { color: color(rec2100-linear 1.4 1.15 1.5); dynamic-range-limit: no-limit; }
   }
 }
-.ambient-screen { dynamic-range-limit: standard; }
+.ambient-screen { dynamic-range-limit: no-limit; }
+.ambient-readout { dynamic-range-limit: standard; }
