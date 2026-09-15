@@ -65,6 +65,13 @@ h1 > span { background: linear-gradient(110deg, #a7b7df 5%, #d9c7ec 45%, #f2d3c7
 .reading-value { font-size: clamp(58px, 6.2vw, 86px); font-weight: 500; line-height: 1.15; letter-spacing: -.065em; font-variant-numeric: tabular-nums; }
 .reading-value.empty { color: #e8e8ee; }
 .reading-unit { color: var(--muted); font-size: 15px; }
+.direction-rates { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0 24px; }
+.direction-rates dt { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 11px; }
+.direction-rates dt svg { width: 13px; height: 13px; }
+.direction-rates > div:first-child dt svg { color: #8ebfff; }
+.direction-rates > div:last-child dt svg { color: #c5a5f2; }
+.direction-rates dd { margin: 5px 0 0; font-size: 24px; font-weight: 400; letter-spacing: -.025em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.direction-rates dd small { color: var(--muted); font-size: 11px; font-weight: 400; }
 .chart { position: relative; margin-top: 18px; }
 .chart > svg { display: block; width: calc(100% - 46px); height: 140px; overflow: visible; }
 .chart-grid { stroke: #ffffff0c; stroke-dasharray: 3 5; }
@@ -163,24 +170,49 @@ footer svg { height: 12px; width: 12px; }
 .ambient-help { margin: 6px 0 16px; color: var(--subtle); font-size: 10px; line-height: 1.5; }
 body:has(.ambient-screen[open]) { overflow: hidden; }
 body:has(.ambient-screen[open])::before { visibility: hidden; }
-.ambient-screen { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #000; color: #a3a9ba; overflow: hidden; cursor: pointer; }
+.ambient-screen { position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #000; color: #9fadc2; overflow: hidden; overscroll-behavior: contain; }
 .ambient-screen::backdrop { background: #000; }
-.ambient-readout { --travel-x: clamp(8px, calc((100vw - 340px) / 2), 140px); --travel-y: clamp(24px, 15vh, 130px); position: absolute; width: min(320px, calc(100vw - 64px)); top: 50%; left: 50%; text-align: center; transform: translate(-50%, -50%); animation: ambient-drift 83s ease-in-out infinite, ambient-color 100s linear infinite; font-weight: 300; }
-.ambient-label { margin: 0 0 22px; color: #8c92a4; font-size: 12px; font-weight: 350; letter-spacing: .015em; }
-.ambient-rate { font-size: clamp(48px, 9vw, 74px); font-weight: 250; line-height: 1.1; letter-spacing: -.045em; font-variant-numeric: tabular-nums; }
-.ambient-rate > span { display: block; margin-top: 7px; font-size: 15px; font-weight: 300; letter-spacing: 0; color: #8c92a4; }
-.ambient-total { margin: 23px 0 0; font-size: 13px; font-variant-numeric: tabular-nums; color: #8c92a4; }
-.ambient-hint { margin: 26px 0 0; font-size: 10px; color: #747c91; }
-.ambient-actions { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
-.ambient-actions button { min-height: 42px; border: 1px solid #8a91a322; border-radius: 8px; background: #8a91a305; padding: 9px 12px; font-size: 11px; font-weight: 350; color: #9199af; }
-.ambient-actions button:hover { background: #8a91a315; color: #b1b8ca; }
-@keyframes ambient-color { to { filter: hue-rotate(360deg); } }
-
-@keyframes ambient-drift {
-  0%, 100% { transform: translate(-50%, -50%) translate(calc(var(--travel-x) * -.65), calc(var(--travel-y) * -.7)); }
-  25% { transform: translate(-50%, -50%) translate(var(--travel-x), calc(var(--travel-y) * -.4)); }
-  50% { transform: translate(-50%, -50%) translate(calc(var(--travel-x) * .4), var(--travel-y)); }
-  75% { transform: translate(-50%, -50%) translate(calc(var(--travel-x) * -.9), calc(var(--travel-y) * .45)); }
+.ambient-viewport { position: absolute; inset: 0 auto auto 0; width: 100%; height: 100%; container-type: size; }
+.ambient-stage { position: absolute; top: max(24px, env(safe-area-inset-top)); bottom: max(24px, env(safe-area-inset-bottom)); left: max(24px, env(safe-area-inset-left)); right: max(24px, env(safe-area-inset-right)); overflow: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.ambient-stage::-webkit-scrollbar { display: none; }
+.ambient-readout { position: absolute; top: 0; left: 0; width: min(340px, calc(100% - 24px)); padding: 2px; font-weight: 350; color: #9fadc2; animation: ambient-color 36s linear infinite; will-change: transform; cursor: default; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.ambient-readout:focus { outline: none; }
+.ambient-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 11px; letter-spacing: .035em; }
+.ambient-live { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; }
+.ambient-live i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.ambient-speeds { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin: 30px 0 0; container-type: inline-size; }
+.ambient-speeds dt { font-size: 12px; opacity: .9; }
+.ambient-speeds dt > span { margin-right: 3px; }
+.ambient-speeds dd { margin: 8px 0 0; }
+.ambient-rate { display: block; font-size: 38px; font-weight: 250; line-height: 1.08; letter-spacing: -.045em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ambient-unit { display: block; margin-top: 6px; font-size: 11px; opacity: .8; }
+.ambient-combined { margin: 22px 0 0; padding: 14px 0; border-top: 1px solid #ffffff18; border-bottom: 1px solid #ffffff18; }
+.ambient-combined > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.ambient-combined dt { font-size: 12px; }
+.ambient-combined dd { margin: 0; font-size: 22px; font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.ambient-combined small { font-size: 11px; letter-spacing: 0; }
+.ambient-usage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 20px 0 0; }
+.ambient-usage dt { font-size: 10px; opacity: .85; }
+.ambient-usage dd { margin: 6px 0 0; font-size: 13px; line-height: 1.4; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ambient-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; }
+.ambient-actions button { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 44px; appearance: none; -webkit-appearance: none; border: 1px solid #ffffff30; border-radius: 999px; background: #000; padding: 10px 8px; font-size: 11px; line-height: 1.3; font-weight: 400; color: inherit; touch-action: manipulation; }
+.ambient-actions button:focus { outline: none; }
+.ambient-actions button:focus-visible { outline: none; border-color: currentColor; box-shadow: inset 0 0 0 2px currentColor; }
+.ambient-actions button:active { background: #ffffff12; }
+@media(hover:hover) { .ambient-actions button:hover { border-color: currentColor; } }
+.ambient-stop { width: 6px; height: 6px; border-radius: 1px; background: currentColor; flex: 0 0 auto; }
+.ambient-hint { margin: 14px 0 0; text-align: center; font-size: 9px; line-height: 1.5; opacity: .75; }
+.ambient-paused .ambient-readout { animation-play-state: paused; }
+@keyframes ambient-color { 0%, 100% { color: #9fadc2; } 33% { color: #b4a4bd; } 66% { color: #93b5ad; } }
+/* Reflow from measured space, not a device name or orientation assumption. */
+@container (max-height: 440px) and (min-width: 560px) {
+  .ambient-readout { width: min(620px, calc(100% - 24px)); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 28px; row-gap: 12px; }
+  .ambient-heading { grid-column: 1 / -1; }
+  .ambient-speeds { grid-column: 1; grid-row: 2; margin: 0; }
+  .ambient-combined { grid-column: 1; grid-row: 3; margin: 0; padding: 8px 0; border-bottom: 0; }
+  .ambient-usage { grid-column: 2; grid-row: 2; margin: 0; align-content: center; }
+  .ambient-actions { grid-column: 2; grid-row: 3; margin: 0; align-self: center; }
+  .ambient-hint { grid-column: 1 / -1; margin: 0; }
 }
 
 /* Wide gamut is distinct from HDR. Keep pure-black surfaces in every mode. */
