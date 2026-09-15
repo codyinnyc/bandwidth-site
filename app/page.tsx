@@ -12,11 +12,11 @@ type Direction = 'download' | 'upload' | 'both';
 type Unit = 'Mbps' | 'MB/s';
 type Transfer = { direction: 'download' | 'upload'; bytes: number };
 type Point = { at: number; rate: number };
-type Snapshot = { downloaded: number; uploaded: number; rate: number; elapsed: number; requests: number; edge: string; points: Point[] };
-const freshSnapshot = (): Snapshot => ({ downloaded: 0, uploaded: 0, rate: 0, elapsed: 0, requests: 0, edge: '—', points: [] });
+type Snapshot = { downloaded: number; uploaded: number; downloadRate: number; uploadRate: number; rate: number; elapsed: number; requests: number; edge: string; points: Point[] };
+const freshSnapshot = (): Snapshot => ({ downloaded: 0, uploaded: 0, downloadRate: 0, uploadRate: 0, rate: 0, elapsed: 0, requests: 0, edge: '—', points: [] });
 const newRun = () => ({
   running: false, active: new Map<symbol, Transfer>(), completedDown: 0, completedUp: 0,
-  planned: 0, requests: 0, started: 0, target: 0, samples: [] as { at: number; total: number }[], points: [] as Point[],
+  planned: 0, requests: 0, started: 0, target: 0, samples: [] as { at: number; downloaded: number; uploaded: number }[], points: [] as Point[],
   controllers: new Set<AbortController>(), xhrs: new Set<XMLHttpRequest>(), timer: 0 as ReturnType<typeof setInterval> | 0,
   blobs: new Map<number, Blob>(), edge: '—',
 });
@@ -91,15 +91,18 @@ export default function Home() {
   const render = (rt: Run) => {
     if (runtime.current !== rt) return;
     const now = performance.now(), current = totals(rt);
-    rt.samples.push({ at: now, total: current.total });
+    rt.samples.push({ at: now, downloaded: current.downloaded, uploaded: current.uploaded });
     // Keep the sample just before the window boundary for a stable rolling rate.
     while (rt.samples.length > 2 && rt.samples[1].at < now - 1500) rt.samples.shift();
     const oldest = rt.samples[0];
-    const rate = oldest && now > oldest.at ? Math.max(0, (current.total - oldest.total) / ((now - oldest.at) / 1000)) : 0;
+    const seconds = oldest && now > oldest.at ? (now - oldest.at) / 1000 : 0;
+    const downloadRate = rt.running && seconds ? Math.max(0, (current.downloaded - oldest.downloaded) / seconds) : 0;
+    const uploadRate = rt.running && seconds ? Math.max(0, (current.uploaded - oldest.uploaded) / seconds) : 0;
+    const rate = downloadRate + uploadRate;
     const elapsed = now - rt.started;
     rt.points.push({ at: elapsed / 1000, rate });
     while (rt.points.length > 1 && rt.points[0].at < elapsed / 1000 - 30) rt.points.shift();
-    setSnapshot({ downloaded: current.downloaded, uploaded: current.uploaded, rate, elapsed, requests: rt.requests, edge: rt.edge, points: [...rt.points] });
+    setSnapshot({ downloaded: current.downloaded, uploaded: current.uploaded, downloadRate, uploadRate, rate, elapsed, requests: rt.requests, edge: rt.edge, points: [...rt.points] });
   };
 
   const halt = (rt: Run, message = 'Stopped. Your transferred totals are preserved.', tone = '') => {
@@ -181,7 +184,7 @@ export default function Home() {
     // Each run owns its requests and counters. Settling an aborted request cannot affect a later run.
     const rt = newRun(); runtime.current = rt;
     rt.running = true; rt.started = performance.now(); rt.target = amount * MB;
-    rt.samples = [{ at: rt.started, total: 0 }]; rt.points = [{ at: 0, rate: 0 }];
+    rt.samples = [{ at: rt.started, downloaded: 0, uploaded: 0 }]; rt.points = [{ at: 0, rate: 0 }];
     setRunTarget(rt.target); setSnapshot(freshSnapshot()); setRunning(true);
     setStatus({ label: 'Transferring', message: continuous ? 'Continuous transfer. Stop whenever you’re ready.' : `Transferring ${formatBytes(rt.target)} ${direction === 'both' ? 'across both directions' : direction === 'download' ? 'to your browser' : 'from your browser'}.`, tone: 'live' });
     rt.timer = setInterval(() => render(rt), 200);
@@ -225,8 +228,12 @@ export default function Home() {
       <section className="console" aria-label="Bandwidth test">
         <div className="telemetry">
           <div className="panel-heading"><span className="section-label">Connection overview</span><span className={`status-chip ${status.tone}`}><span/>{status.label}</span></div>
-          <div className="reading-topline"><span>{hasResult ? 'Average throughput' : 'Live throughput'}</span><div className="unit-toggle" aria-label="Speed units">{(['Mbps', 'MB/s'] as Unit[]).map(value => <button key={value} type="button" aria-pressed={unit === value} onClick={() => setUnit(value)}>{value}</button>)}</div></div>
+          <div className="reading-topline"><span>{hasResult ? 'Average combined throughput' : 'Live combined throughput'}</span><div className="unit-toggle" aria-label="Speed units">{(['Mbps', 'MB/s'] as Unit[]).map(value => <button key={value} type="button" aria-pressed={unit === value} onClick={() => setUnit(value)}>{value}</button>)}</div></div>
           <div className="primary-reading"><span className={`reading-value${!snapshot.elapsed ? ' empty' : ''}`}>{snapshot.elapsed ? formatRate(hasResult ? average : snapshot.rate, unit) : '0.0'}</span><span className="reading-unit">{unit}</span></div>
+          <dl className="direction-rates" aria-label={hasResult ? 'Average directional throughput' : 'Current directional throughput'}>
+            <div><dt><Icon name="down"/>{hasResult ? 'Average download' : 'Download'}</dt><dd><span>{formatRate(hasResult ? snapshot.downloaded / (snapshot.elapsed / 1000) : snapshot.downloadRate, unit)}</span> <small>{unit}</small></dd></div>
+            <div><dt><Icon name="up"/>{hasResult ? 'Average upload' : 'Upload'}</dt><dd><span>{formatRate(hasResult ? snapshot.uploaded / (snapshot.elapsed / 1000) : snapshot.uploadRate, unit)}</span> <small>{unit}</small></dd></div>
+          </dl>
           <RateChart points={snapshot.points} unit={unit} running={running}/>
           <dl className="stats">
             <div><dt><span className="download-icon"><Icon name="down"/></span>Downloaded</dt><dd>{formatBytes(snapshot.downloaded)}</dd></div>
@@ -257,7 +264,7 @@ export default function Home() {
             </fieldset> : <fieldset disabled={running}><legend className="connections-label"><span>Connections</span><span className="count-badge">{connections}</span></legend><label><span className="sr-only">Parallel connections</span><input type="range" min="1" max="16" value={connections} style={{ '--range-progress': `${(connections - 1) / 15 * 100}%` } as React.CSSProperties} onChange={(event) => setConnections(Number(event.target.value))}/></label><div className="range-labels"><span>1 · Lighter load</span><span>16 · More parallel</span></div></fieldset>}
           </div>
           <WakeControl running={running} enabled={keepAwake} onEnabledChange={setKeepAwake}/>
-          {keepAwake && running && <AmbientDisplay rate={formatRate(snapshot.rate, unit)} unit={unit} transferred={formatBytes(total)} onStop={() => halt(runtime.current)}/>}
+          {keepAwake && running && <AmbientDisplay downloadRate={formatRate(snapshot.downloadRate, 'Mbps')} uploadRate={formatRate(snapshot.uploadRate, 'Mbps')} combinedRate={formatRate(snapshot.rate, 'Mbps')} downloaded={formatBytes(snapshot.downloaded)} uploaded={formatBytes(snapshot.uploaded)} transferred={formatBytes(total)} onStop={() => halt(runtime.current)}/>}
           <button className={`run-button${running ? ' running' : ''}`} type="button" onClick={running ? () => halt(runtime.current) : start}><Icon name={running ? 'stop' : 'play'}/>{running ? 'Stop transfer' : hasResult ? 'Run again' : 'Start transfer'}</button>
           <p className={`status-message ${status.tone}`} role="status" aria-live="polite">{status.message}</p>
           <p className="data-note">Uses real data. Large transfers may count toward your plan’s data allowance.</p>

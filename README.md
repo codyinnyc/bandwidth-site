@@ -22,7 +22,7 @@ The GitHub Pages deployment is generated as a static Next.js export by the workf
 ## Interface and transfer controls
 
 - Apple system typography (San Francisco on Apple devices), pure-black OLED backgrounds, and an animated rainbow viewport border.
-- Live throughput chart, Mbps/MB/s switching, exact payload totals, and a preserved average after completion or stop.
+- Separate live download/upload rates and combined throughput, a throughput chart, Mbps/MB/s switching, exact payload totals, and preserved averages after completion or stop.
 - A blank or zero data allowance means unlimited. Negative, fractional, and nonnumeric amounts are rejected. The allowance is shared across all connections and both directions.
 - Basic mode uses one connection count. Advanced mode provides independent download and upload thread pools, 1–16 each. Only pools for the selected direction run. Actual concurrency remains subject to browser/network limits.
 - Each run owns its requests, so late aborts from an older run cannot alter a restarted transfer.
@@ -31,11 +31,11 @@ The GitHub Pages deployment is generated as a static Next.js export by the workf
 
 The optional Keep screen awake switch uses the native Screen Wake Lock API during transfers. It releases the lock on stop, completion, disable, and unmount, and requests it again when the tab becomes visible. The interface distinguishes an active lock from a denied, released, or unsupported request.
 
-With that switch enabled during a transfer, the ambient display opens after 20 seconds without interaction, or immediately through its button. The background stays pure black while dim, light-weight readouts slowly change hue and move around the viewport. Tap to return or use Stop transfer. The static rainbow border is hidden in this mode. Reduce Motion disables animation. This reduces static-image exposure; it is not a guarantee against display burn-in.
+With that switch enabled during a transfer, the ambient display opens after 20 seconds without interaction, or immediately through its button. The background stays pure black while light-weight readouts change hue and drift at approximately 17 CSS pixels/second. Download, upload, and combined rates appear in Mbps; downloaded, uploaded, and total usage appear in decimal MB/GB. Rates share a rolling 1.5-second sampling window and refresh five times a second. Tap the background or Show controls to return, or use Stop transfer. Motion pauses while interacting with the readout or focusing its controls. The rainbow border is hidden in this mode. VisualViewport, safe-area insets, and ResizeObserver keep the readout within changing screen bounds; a short, wide viewport uses a two-column layout. Small or zoomed viewports can scroll if needed. The modal initially focuses the readout and draws keyboard focus inside its buttons, avoiding a clipped external focus ring in Safari. Reduce Motion disables animation. This reduces static-image exposure; it is not a guarantee against display burn-in.
 
 Safari supports the native API from iOS 16.4. Keep the tab visible: screen wake lock does not guarantee background execution, override a manual lock, or override power-management decisions. No fake video or audio is used.
 
-References: [WebKit Safari 16.4](https://webkit.org/blog/13966/webkit-features-in-safari-16-4/), [Screen Wake Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API).
+References: [WebKit Safari 16.4](https://webkit.org/blog/13966/webkit-features-in-safari-16-4/), [Screen Wake Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API), [VisualViewport](https://developer.mozilla.org/en-US/docs/Web/API/VisualViewport), [WebKit dynamic viewport units](https://webkit.org/blog/12445/new-webkit-features-in-safari-15-4/).
 
 ## Verification
 
@@ -47,7 +47,7 @@ npx playwright install chromium
 
 For browser regressions, start `npx next dev --port 3000` in one terminal and run `BASE_URL=http://localhost:3000 npm run test:browser` in another. The tests mock transfer payloads and wake locks; they do not consume real test bandwidth. An existing Chromium binary can be selected with `CHROME_PATH`.
 
-Coverage includes exact download/upload totals, unit conversion, rapid stop/restart, unlimited blank/zero allowances, validation, separate thread pools, responsive layout, reduced motion, wake-lock cleanup/denial, and ambient controls. Physical iPhone sleep behavior still needs an on-device check.
+Coverage includes exact download/upload totals, unit conversion, rapid stop/restart, unlimited blank/zero allowances, validation, separate thread pools, responsive layout, reduced motion, wake-lock cleanup/denial, ambient controls, split-rate accounting, viewport changes, and motion bounds. Physical iPhone sleep behavior and Safari rendering still need an on-device check.
 
 ## Color and HDR
 
