@@ -16,9 +16,25 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background: #000; }
-@property --frame-angle { syntax: '<angle>'; inherits: false; initial-value: 120deg; }
-body::before, .ambient-viewport::before { content: ''; position: fixed; inset: 0; z-index: 100; pointer-events: none; border: 2px solid transparent; border-image: linear-gradient(var(--frame-angle), #ff537d, #ffbf59, #6ae7a1, #6bcfff, #9985ff, #ef7ed5, #ff537d) 1; animation: frame-turn 24s linear infinite; }
-@keyframes frame-turn { to { --frame-angle: 480deg; } }
+/* Always-visible sRGB edges. HDR/P3 are separate paint layers, never replacements
+   for the baseline. No border-image, masks, filters, or registered properties. */
+.rainbow-frame { position: absolute; inset: 0; pointer-events: none; z-index: 2; dynamic-range-limit: no-limit; }
+.rainbow-frame-page { position: fixed; inset: 4px; width: calc(100% - 8px); height: calc(100vh - 8px); height: calc(100dvh - 8px); z-index: 100; }
+.rainbow-edge { position: absolute; display: block; pointer-events: none; background-color: #b5a1ff; background-image: linear-gradient(90deg, #ff537d, #ffbf59, #6ae7a1, #6bcfff, #9985ff, #ef7ed5, #ff537d); background-size: 300% 300%; animation: rainbow-flow 12s linear infinite alternate; }
+.rainbow-edge-top, .rainbow-edge-bottom { left: 0; right: 0; height: 2px; }
+.rainbow-edge-left, .rainbow-edge-right { top: 0; bottom: 0; width: 2px; background-image: linear-gradient(180deg, #ff537d, #ffbf59, #6ae7a1, #6bcfff, #9985ff, #ef7ed5, #ff537d); }
+.rainbow-edge-top { top: 0; }
+.rainbow-edge-right { right: 0; }
+.rainbow-edge-bottom { bottom: 0; }
+.rainbow-edge-left { left: 0; }
+.rainbow-edge::after { content: ''; position: absolute; inset: 0; background-size: inherit; background-position: inherit; dynamic-range-limit: no-limit; }
+/* Keep an outer sRGB pixel uncovered even if an HDR renderer paints black. */
+.rainbow-edge-top::after { top: 1px; }
+.rainbow-edge-right::after { right: 1px; }
+.rainbow-edge-bottom::after { bottom: 1px; }
+.rainbow-edge-left::after { left: 1px; }
+@keyframes rainbow-flow { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
+
 a { color: inherit; }
 button, input { font: inherit; color: inherit; }
 button, a, input { -webkit-tap-highlight-color: transparent; }
@@ -170,15 +186,15 @@ footer svg { height: 12px; width: 12px; }
 .ambient-entry:hover { background: #ffffff10; }
 .ambient-help { margin: 6px 0 16px; color: var(--subtle); font-size: 10px; line-height: 1.5; }
 body:has(.ambient-screen[open]) { overflow: hidden; }
-body:has(.ambient-screen[open])::before { visibility: hidden; }
+body:has(.ambient-screen[open]) > .rainbow-frame-page { visibility: hidden; }
 .ambient-screen { position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #000; color: #9fadc2; overflow: hidden; overscroll-behavior: contain; }
 .ambient-screen::backdrop { background: #000; }
 .ambient-viewport { position: absolute; inset: 0 auto auto 0; width: 100%; height: 100%; container-type: size; }
-.ambient-viewport::before { position: absolute; inset: 4px; z-index: 1; animation: frame-turn 24s linear infinite, ambient-frame-shift 18s linear infinite; }
+.rainbow-frame-screen { inset: 4px; animation: ambient-frame-shift 18s linear infinite; }
 @keyframes ambient-frame-shift { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, 1px); } 75% { transform: translate(-1px, -1px); } }
 .ambient-stage { position: absolute; top: max(24px, env(safe-area-inset-top)); bottom: max(24px, env(safe-area-inset-bottom)); left: max(24px, env(safe-area-inset-left)); right: max(24px, env(safe-area-inset-right)); overflow: auto; overscroll-behavior: contain; scrollbar-width: none; }
 .ambient-stage::-webkit-scrollbar { display: none; }
-.ambient-readout { position: absolute; top: 0; left: 0; width: min(340px, calc(100% - 24px)); padding: 2px; font-weight: 350; color: #9fadc2; animation: ambient-color 36s linear infinite; will-change: transform; cursor: default; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.ambient-readout { position: absolute; top: 0; left: 0; width: min(360px, calc(100% - 24px)); padding: 20px; background: #000; font-weight: 350; color: #9fadc2; animation: ambient-color 36s linear infinite; will-change: transform; cursor: default; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .ambient-readout:focus { outline: none; }
 .ambient-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 11px; letter-spacing: .035em; }
 .ambient-live { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; }
@@ -205,7 +221,7 @@ body:has(.ambient-screen[open])::before { visibility: hidden; }
 @media(hover:hover) { .ambient-actions button:hover { border-color: currentColor; } }
 .ambient-stop { width: 6px; height: 6px; border-radius: 1px; background: currentColor; flex: 0 0 auto; }
 .ambient-hint { margin: 14px 0 0; text-align: center; font-size: 9px; line-height: 1.5; opacity: .75; }
-.ambient-paused .ambient-readout, .ambient-paused .ambient-viewport::before { animation-play-state: paused; }
+.ambient-paused .ambient-readout, .ambient-paused .rainbow-frame-screen, .ambient-paused .rainbow-edge { animation-play-state: paused; }
 @keyframes ambient-color { 0%, 100% { color: #9fadc2; } 33% { color: #b4a4bd; } 66% { color: #93b5ad; } }
 /* Reflow from measured space, not a device name or orientation assumption. */
 @container (max-height: 440px) and (min-width: 560px) {
@@ -218,23 +234,20 @@ body:has(.ambient-screen[open])::before { visibility: hidden; }
   .ambient-hint { grid-column: 1 / -1; margin: 0; }
 }
 
-/* Wide gamut is distinct from HDR. Keep pure-black surfaces in every mode. */
+/* Wide gamut is distinct from HDR. Enhancements paint above the sRGB base. */
 @media (color-gamut: p3) {
-  @supports (color: color(display-p3 1 0 0)) {
-    body::before, .ambient-viewport::before { border-image-source: linear-gradient(var(--frame-angle), color(display-p3 1 .24 .42), color(display-p3 1 .7 .22), color(display-p3 .25 .88 .52), color(display-p3 .25 .72 1), color(display-p3 .57 .35 1), color(display-p3 .95 .32 .76), color(display-p3 1 .24 .42)); }
+  @supports (background-image: linear-gradient(90deg, color(display-p3 1 0 0), color(display-p3 0 1 0))) {
+    .rainbow-edge::after { background-image: linear-gradient(90deg, color(display-p3 1 .24 .42), color(display-p3 1 .7 .22), color(display-p3 .25 .88 .52), color(display-p3 .25 .72 1), color(display-p3 .57 .35 1), color(display-p3 .95 .32 .76), color(display-p3 1 .24 .42)); }
+    .rainbow-edge-left::after, .rainbow-edge-right::after { background-image: linear-gradient(180deg, color(display-p3 1 .24 .42), color(display-p3 1 .7 .22), color(display-p3 .25 .88 .52), color(display-p3 .25 .72 1), color(display-p3 .57 .35 1), color(display-p3 .95 .32 .76), color(display-p3 1 .24 .42)); }
     h1 > span { background-image: linear-gradient(110deg, color(display-p3 .62 .7 .9), color(display-p3 .85 .73 .94), color(display-p3 .96 .8 .73)); }
   }
 }
-/* CSS Color HDR is a working draft. Both display and parser support are required.
-   Do not infer HDR from P3, OKLCH, or dynamic-range-limit alone. */
+/* HDR is optional. Test the actual gradient syntax and retain a separate SDR
+   layer even when a browser parses HDR colors but fails to paint them. */
 @media (dynamic-range: high) {
-  @supports (color: color(rec2100-linear 1.5 1.2 1.4)) {
-    body::before, .ambient-viewport::before {
-      dynamic-range-limit: no-limit;
-      /* A small highlight above reference white; not a full-screen brightness lift. */
-      border-image-source: linear-gradient(var(--frame-angle), color(rec2100-linear 1.5 .18 .4), color(rec2100-linear 1.4 1.15 .3), color(rec2100-linear .2 1.4 .7), color(rec2100-linear .3 1.1 1.5), color(rec2100-linear .9 .35 1.5), color(rec2100-linear 1.5 .35 1.1));
-      /* Animate the gradient angle directly; no SDR filter or opacity layer. */
-    }
+  @supports (background-image: linear-gradient(90deg, color(rec2100-linear 1.5 1.2 1.4), color(rec2100-linear .2 1.4 .7))) {
+    .rainbow-edge::after { background-image: linear-gradient(90deg, color(rec2100-linear 1.5 .18 .4), color(rec2100-linear 1.4 1.15 .3), color(rec2100-linear .2 1.4 .7), color(rec2100-linear .3 1.1 1.5), color(rec2100-linear .9 .35 1.5), color(rec2100-linear 1.5 .35 1.1)); }
+    .rainbow-edge-left::after, .rainbow-edge-right::after { background-image: linear-gradient(180deg, color(rec2100-linear 1.5 .18 .4), color(rec2100-linear 1.4 1.15 .3), color(rec2100-linear .2 1.4 .7), color(rec2100-linear .3 1.1 1.5), color(rec2100-linear .9 .35 1.5), color(rec2100-linear 1.5 .35 1.1)); }
     .brand-dot { color: color(rec2100-linear 1.4 1.15 1.5); dynamic-range-limit: no-limit; }
   }
 }
